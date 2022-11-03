@@ -1,23 +1,83 @@
 from pymongo import MongoClient
+import Encryption
+import hardwareSet
 
-client = MongoClient("mongodb+srv://username:utguest@cluster0.ezuijhw.mongodb.net/test")
-
-database = client['HaaS-App']
-
-print(database.list_collection_names())
-user_collection = database.get_collection("Users")
-
-
-import datetime
-user_doc = {
-    "Name" : "username2",
-    "Password" : "password1",
-}
-
-user_collection.insert_one(user_doc)
+class MongoVars:
+    def __init__(self):
+        self.__client = MongoClient("mongodb+srv://username:utguest@cluster0.ezuijhw.mongodb.net/test")
+        self.__database = self.__client['HaaS-App']
+        self.__userCollection = self.__database.get_collection("Users")
+        self.__hardwareCollection = self.__database.get_collection("HWSets")
+        self.__projectCollection = self.__database.get_collection("Projects")
 
 
-def addUser(json):
-    user_collection.insert_one(json)
 
-client.close()
+    def addUser(self, name, userid, password):
+        # validation
+        idTaken = self.__userCollection.find_one({'_id': userid}) is not None
+        if idTaken:
+            return False
+
+        userDoc = {
+            '_id': userid,
+            'Name': name,
+            'EncryptedPass': Encryption.customEncrypt(password, 3, 1),
+            'AdminProjs': [],
+            'UserProjs': []
+        }
+
+        self.__userCollection.insert_one(userDoc)
+        return True
+
+
+    def createProject(self, projName, projid, description, admin, members):
+        idTaken = self.__projectCollection.find_one({'_id': projid}) is not None
+        if idTaken:
+            return False
+
+        memberList = members.split()
+
+        # make sure users in memberlist exist
+        for member in memberList:
+            user = self.__userCollection.find_one({'_id': member})
+            userProjs = user['UserProjs']
+            userProjs.append(projid)
+            self.__userCollection.update_one({'_id': member}, {'$set': {'UserProjs': userProjs}})
+
+        user = self.__userCollection.find_one({'_id': admin})
+        adminProjs = user['AdminProjs']
+        adminProjs.append(projid)
+        self.__userCollection.update_one({'_id': admin}, {'$set': {'AdminProjs': adminProjs}})
+
+        projDoc = {
+            '_id': projid,
+            'Name': projName,
+            'Description': description,
+            'Admin': admin,
+            'Members': memberList,
+            'HW1': {
+                'Capacity': 500,
+                'Availability': 500
+            },
+            'HW2': {
+                'Capacity': 500,
+                'Availability': 500
+            }
+        }
+
+        self.__projectCollection.insert_one(projDoc)
+        return True
+
+
+
+# client.close()
+
+# Project Hierarchy (Maybe)
+# cluster
+#   -database: HaaS App
+#       -Users (collection)
+#           - document for each user: contains encrypted pass, username, userID, list of admin projs, list of included projs for redundancy
+#       -Projects (collection)
+#           - doc for each proj: contains proj name, projID, list of hwsets in proj (HWset ID), list of users with access, admin user
+#       -HWSets (collection) probably not
+#           - doc for each hwset: contains projID, hwset name, hwset ID, capacity, availability

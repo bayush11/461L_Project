@@ -1,6 +1,8 @@
 from flask import Flask, send_from_directory, redirect, request
+import MongoDatabase
 
 app = Flask(__name__, static_url_path='', static_folder='ui/build/')
+database = MongoDatabase.MongoVars()
 
 # TODO: after adding login methods add login verification to each page
 
@@ -15,21 +17,26 @@ def newUser():
 
 @app.route('/')
 def home():
-    return redirect('/projects')
+    return redirect('/login')
 
 @app.route('/newUser/create', methods = ['POST'])
 def createUser():
     # TODO: integrate with mongodb functionality
     if request.method == 'POST':
-        message = "Name: " + request.form['nm'] + ', UserID: ' + request.form['userid'] + ', Password: ' + request.form['password']
-        return {"message": message}
+        if database.addUser(str(request.form['nm']), str(request.form['userid']), str(request.form['password'])):
+            redirect('/projects')
+            return
+        else:
+            return {"message": "UserID already taken"}
 
 @app.route('/projects/newProject/create', methods = ['POST'])
 def createProject():
     # TODO: integrate with mongodb functionality
     if request.method == 'POST':
-        message = "Name: " + request.form['projnm'] + ', ProjID: ' + request.form['projid'] + ', Description: ' + request.form['description'] + ', Members: ' + request.form['members']
-        return {"message": message}
+        if database.createProject(request.form['projnm'], request.form['projid'], request.form['description'], 'vjliew', request.form['members']):
+            return redirect('/projects')
+        else:
+            return {"message": "ProjectID already taken"}
 
 @app.route('/projects/newProject')
 def newProject():
@@ -63,4 +70,5 @@ def not_found(e):
     return app.send_static_file('index.html')
 
 if __name__ == '__main__':
+    # instantiate db object
     flask_app.run(host='0.0.0.0', debug=False, port=os.environ.get('PORT', 80))
