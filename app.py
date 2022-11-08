@@ -23,6 +23,19 @@ def logout():
     session.pop('userid', None)
     return redirect('/')
 
+@app.route('/login')
+def login():
+    return app.send_static_file('index.html')
+
+@app.route('/login/start', methods = ['POST'])
+def loginStart():
+    if request.method == 'POST':
+        if database.validUser(request.form['nm'], request.form['password']):
+            session['userid'] = request.form['nm']
+            return {"valid": True}
+        else:
+            return {"valid": False, "message": "Incorrect userID/password"}
+
 @app.route('/')
 def home():
     if 'userid' in session:
@@ -36,18 +49,22 @@ def createUser():
     if request.method == 'POST':
         if database.addUser(str(request.form['nm']), str(request.form['userid']), str(request.form['password'])):
             session['userid'] = request.form['nm']
-            return redirect('/projects')
+            return {"valid": True}
         else:
-            return {"message": "UserID already taken"}
+            return {"valid": False, "message": "UserID already taken"}
 
 @app.route('/projects/newProject/create', methods = ['POST'])
 def createProject():
     # TODO: integrate with mongodb functionality
     if request.method == 'POST':
-        if database.createProject(request.form['projnm'], request.form['projid'], request.form['description'], 'vjliew', request.form['members']):
-            return redirect('/projects')
+        if database.createProject(request.form['projnm'], request.form['projid'], request.form['description'], session['userid'], request.form['members']):
+            return {"valid": True}
         else:
-            return {"message": "ProjectID already taken"}
+            return {"valid": False, "message": "ProjectID already taken"}
+
+@app.route('/projects/list')
+def projectList():
+    return database.getUserProjects(session['userid'])
 
 @app.route('/projects/newProject')
 def newProject():
@@ -67,8 +84,17 @@ def checkIn_hardware(projectid, qty):
 
 @app.route('/projects/join/<projectid>')
 def joinProject(projectid):
-    message = "joined project: " + projectid
-    return {"message": message}
+    project = database.getProject(projectid)
+    return {
+            'Name': project['Name'], 
+            'Description': project['Description'],
+            'Admin': project['Admin'],
+            'Members': project['Members'],
+            'HW1': project['HW1'],
+            'HW2': project['HW2']
+        }
+    # message = "joined project: " + projectid
+    # return {"message": message}
 
 
 @app.route('/projects/leave/<projectid>')

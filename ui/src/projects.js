@@ -167,6 +167,7 @@ class Projects extends React.Component {
             console.log('result is: ', JSON.stringify(result))
 
             // TODO: setState with list info
+            
         } catch (err) {
             console.log(err.message)
         } finally {

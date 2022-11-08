@@ -68,7 +68,6 @@ class MongoVars:
         self.__projectCollection.insert_one(projDoc)
         return True
 
-<<<<<<< Updated upstream
 
     def checkInHW(self, projid, setNum, qty):
         idTaken = self.__projectCollection.find_one({'_id': projid}) is not None
@@ -91,13 +90,12 @@ class MongoVars:
 
         return True
         # TODO: reflect amount checked in
-=======
+
     def getUserProjects(self, userid):
         usr = self.__userCollection.find_one({'_id': userid})
 
         return {'AdminProjs': usr['AdminProjs'],
                 'UserProjs': usr['UserProjs']}
->>>>>>> Stashed changes
 
 
     def checkOutHW(self, projid, setNum, qty):
@@ -121,6 +119,17 @@ class MongoVars:
 
         return True
         # TODO: reflect amount checked out
+
+    def getProject(self, projid):
+        project = self.__projectCollection.find_one({'_id': projid})
+        return project
+
+    def validUser(self, userid, password):
+        user = self.__userCollection.find_one({'_id': userid})
+        if user is None:
+            return False
+
+        return Encryption.customEncrypt(password, 3, 1) == user['EncryptedPass']
 
 # client.close()
 
