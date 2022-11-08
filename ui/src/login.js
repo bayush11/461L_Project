@@ -9,8 +9,10 @@ class Login extends React.Component {
 
     this.state = {
       passInvalid: false,
+      diffErr: "",
       passErr: "",
       passText: "",
+      diffText: "",
       idInvalid: false,
       idHelper: ""
     }
@@ -27,12 +29,11 @@ class Login extends React.Component {
       alert("Error: " + this.state.passErr)
       return
     }
-    
 
     const data = new FormData(event.currentTarget)
 
     try {
-      const response = await fetch('/login/authenticate', {
+      const response = await fetch('/login/start', {
         method: 'POST',
         body: data
         // nm: data.get('nm'),
@@ -75,6 +76,8 @@ class Login extends React.Component {
     })
   }
 
+  // Confirm Password field updated
+
 
   handleIdChange = event => {
     let invalid = !this.isAlphanumeric(event.target.value) && event.target.value.length > 0
@@ -90,8 +93,7 @@ class Login extends React.Component {
     return (
       <Box className='container' >
         <Box border={1} width={350} padding={6} margin={6} className='container' boxShadow={8} component='form' onSubmit={this.handleSubmit} >
-          <h1 className='item' > Log In </h1>
-          
+        <h1> Login </h1>
           <TextField
             className='item'
             name='userid'
@@ -116,12 +118,10 @@ class Login extends React.Component {
             onChange={this.handlePassChange}
             error={this.state.passInvalid}
             helperText={this.state.passErr}
-            
           />
-    
-          <br/>
-          <Grid justifyContent="flex-end" container ><Button type='submit' variant='outlined' >Create User</Button></Grid><br/>
-          <Link href='/login'  >Cancel</Link>
+
+          <Grid justifyContent="flex-end" container ><Button type='submit' variant='outlined' >Continue </Button></Grid><br/>
+          <Link href='/newUser'  >Dont have an account? Sign up!</Link>
         </Box>
       </Box>
   )}
