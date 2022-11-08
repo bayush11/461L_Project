@@ -68,6 +68,7 @@ class MongoVars:
         self.__projectCollection.insert_one(projDoc)
         return True
 
+        # inputs user and gets list of Admin and User projects that the user is in
         def getUserProjects(self, userid):
             usr = self.__userCollection.find_one({'_id': userid})
 
