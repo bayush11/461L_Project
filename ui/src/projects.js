@@ -1,14 +1,14 @@
 import React from "react";
 import './App.css';
-import { Button, TextField, Grid, Box, Select, MenuItem, FormControl } from "@mui/material";
+import { Button, TextField, Grid, Box, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 
 class Projects extends React.Component {
     constructor(props) {
         super(props)
 
         this.state = {
-            adminList: [],
-            memberList: [],
+            adminList: [""],
+            memberList: [""],
             projectsLoaded: false,
             mainProjectID: '',
             mainProject: {
@@ -164,8 +164,9 @@ class Projects extends React.Component {
 
             const result = await response.json()
             
-            console.log("loaded: ", this.state.projectsLoaded)
             console.log('result is: ', JSON.stringify(result))
+            console.log(result.AdminProjs)
+            console.log(result.UserProjs)
 
             // TODO: setState with list info
             this.setState({
@@ -174,6 +175,10 @@ class Projects extends React.Component {
                 memberList: result.UserProjs
             })
             
+            console.log(this.state.adminList)
+            console.log(this.state.memberList)
+            console.log(this.state.projectsLoaded)
+
         } catch (err) {
             console.log(err.message)
         } finally {
@@ -193,13 +198,14 @@ class Projects extends React.Component {
                 <h1>Projects</h1><br/>
                 <Grid container justifyContent="flex-start" direction='row' >
                     <Grid item xs={2} ><FormControl >
-                        <Select label='Project' value={this.state.selectProject} onChange={this.handleSelectChange} size="small" >
+                        <InputLabel id="projectsLabel" >ProjectID</InputLabel>
+                        <Select label='ProjectID' labelId="projectsLabel" value={this.state.selectProject} onChange={this.handleSelectChange} size="small" >
                             <MenuItem value='--Select a Project--' >--Select a Project--</MenuItem>
-                            {this.state.adminList.map(({ projid }) => (
-                                <MenuItem value={projid} >{projid}</MenuItem>
+                            {this.state.adminList.map(({ projid, index }) => (
+                                <MenuItem value={projid} id={index} >{projid}</MenuItem>
                             ))}
-                            {this.state.memberList.map(({ projid }) => (
-                                <MenuItem value={projid} >{projid}</MenuItem>
+                            {this.state.memberList.map(({ projid, index }) => (
+                                <MenuItem value={projid} id={index} >{projid}</MenuItem>
                             ))}
                         </Select>
                     </FormControl></Grid>
