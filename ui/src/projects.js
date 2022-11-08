@@ -59,7 +59,8 @@ class Projects extends React.Component {
                 method: 'GET'
             })
             if (!response.ok) {
-                throw new Error(`Error! status: ${response.status}`)
+                err = new Error(`Error! status: ${response.status}`)
+                throw err
             }
 
             const result = await response.json()
@@ -96,7 +97,8 @@ class Projects extends React.Component {
                 method: 'GET'
             })
             if (!response.ok) {
-                throw new Error(`Error! status: ${response.status}`)
+                err = new Error(`Error! status: ${response.status}`)
+                throw err
             }
 
             const result = await response.json()
