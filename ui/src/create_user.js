@@ -195,7 +195,7 @@ class NewUser extends React.Component {
             helperText={this.state.diffErr}
           /><br/>
           <Grid justifyContent="flex-end" container ><Button type='submit' variant='outlined' >Create User</Button></Grid><br/>
-          <Link href='/login'  >Cancel</Link>
+          <Link href='/login' >Cancel</Link>
         </Box>
       </Box>
   )}

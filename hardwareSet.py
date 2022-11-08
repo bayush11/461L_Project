@@ -5,8 +5,8 @@
 class HWSet:
 
     # __init__: takes amount and sets capacity and availability
-    def __init__(self, qty):
-        self.__Capacity = qty
+    def __init__(self, qty, capacity):
+        self.__Capacity = capacity
         self.__availability = qty
 
     # get_availability: returns availability

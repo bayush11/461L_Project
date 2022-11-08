@@ -1,87 +1,43 @@
 import React from "react";
 import './App.css';
-import { Button, TextField, Grid, Box } from "@mui/material";
+import { Button, TextField, Grid, Box, Select, MenuItem } from "@mui/material";
 
 class Projects extends React.Component {
     constructor(props) {
         super(props)
 
         this.state = {
-            projects: [
-                // proj1
-                {
-                  name: 'Project Name 1',
-                  users: ["vliew"],
-                  projID: "1"
-                },
-                //proj2
-                {
-                  name: 'Project Name 2',
-                  users: ["asamant", "vliew"],
-                  projID: "1234"
-                },
-                // proj3
-                {
-                  name: 'Project Name 3',
-                  users: ["vliew", "ayush", "asamant"],
-                  projID: "7865"
-                }
-              ]
-        }
-    }
-
-    render() {
-        return (
-            <Box margin={8} padding={4} border={2}>
-                <h1>Projects</h1>
-                {this.state.projects.map(({ name, users, projID }) => (
-                    <Project projID={projID} projectName={name} projectUsers={users} />
-                ))}
-            </Box>
-        )
-    }
-}
-
-
-class Project extends React.Component {
-    constructor(props) {
-        super(props)
-
-        this.state = {
-            HWSets: [
-                {
-                  // Set 1
-                  available: 100,
-                  capacity: 100
-                },
-    
-                {
-                  // Set 1
-                  available: 100,
-                  capacity: 100
-                },
-              ],
-            inProj: false,
+            adminList: [],
+            memberList: [],
+            projectsLoaded: false,
+            mainProjectID: '',
+            mainProject: {
+                Name: '',
+                Description: '',
+                Members: '',
+                HWsets: [
+                    {
+                        capacity: 500,
+                        available: 0
+                    }, {
+                        capacity: 500,
+                        available: 0
+                    }
+                ]
+            },
+            selectProject: '--Select a Project--',
+            loadingProject: false,
+            loadingProjectsList: false,
+            mainLoaded: false,
             loadingCheckIn: false,
-            loadingCheckOut: false,
-            loadingJoin: false,
-            loadingLeave: false
+            loadingCheckOut: false
         }
-
-
     }
 
-    renderHWSet(i) {
-
-        return (
-            <HWSet
-                setNum={i+1}
-                onCheckIn={(qty) => this.handleCheckIn(i, qty)}
-                onCheckOut={(qty) => this.handleCheckOut(i, qty)}
-                hwset={this.state.HWSets[i]}
-                projID={this.props.projID}
-            />
-        )
+    handleSelectChange = event => {
+        this.setState({
+            selectProject: event.target.value
+        })
     }
 
     handleCheckIn = async (i, qty) => {
@@ -93,9 +49,10 @@ class Project extends React.Component {
             loadingCheckIn: true
         })
 
-        let projID = JSON.stringify(this.props.projID).replaceAll('"', '')
+        let projid = JSON.stringify(this.state.mainProjectID).replaceAll('"', '')
         let amount = JSON.stringify(qty)
-        const url = ['/projects', 'checkIn', projID, amount].join('/')
+        let setNum = JSON.stringify(i)
+        const url = ['/projects', 'checkIn', projid, setNum, amount].join('/')
         console.log(url)
         try {
             const response = await fetch(url, {
@@ -104,13 +61,13 @@ class Project extends React.Component {
             if (!response.ok) {
                 throw new Error(`Error! status: ${response.status}`)
             }
-    
+
             const result = await response.json()
-    
+
             console.log('result is: ', JSON.stringify(result))
-    
-            // TODO: setState with API info in project
-            alert(result.message)
+
+            // TODO: setState of project availability, maybe alert
+
         } catch (err) {
             console.log(err.message)
         } finally {
@@ -118,11 +75,9 @@ class Project extends React.Component {
                 loadingCheckIn: false
             })
         }
-
-
     }
 
-    handleCheckOut = async(i, qty) => {
+    handleCheckOut = async (i, qty) => {
         if (qty == null) {
             alert('Enter quantity into corresponding field')
             return
@@ -131,10 +86,10 @@ class Project extends React.Component {
             loadingCheckOut: true
         })
 
-        let projID = JSON.stringify(this.props.projID).replaceAll('"', '')
+        let projid = JSON.stringify(this.state.mainProjectID).replaceAll('"', '')
         let amount = JSON.stringify(qty)
-        // const url = "/projects/checkOut/" + toString(projID) + "/" + toString(qty)
-        const url = ['/projects', 'checkOut', projID, amount].join('/')
+        let setNum = JSON.stringify(i)
+        const url = ['/projects', 'checkIn', projid, setNum, amount].join('/')
         console.log(url)
         try {
             const response = await fetch(url, {
@@ -143,13 +98,13 @@ class Project extends React.Component {
             if (!response.ok) {
                 throw new Error(`Error! status: ${response.status}`)
             }
-    
+
             const result = await response.json()
-    
+
             console.log('result is: ', JSON.stringify(result))
-    
-            // TODO: setState with API info in project
-            alert(result.message)
+
+            // TODO: setState of project availability, maybe alert
+
         } catch (err) {
             console.log(err.message)
         } finally {
@@ -157,97 +112,146 @@ class Project extends React.Component {
                 loadingCheckOut: false
             })
         }
-
     }
 
-    handleJoin = async() => {
-
-        let projID = JSON.stringify(this.props.projID).replaceAll('"', '')
-        let url = ""
-        let leave = this.state.inProj
-        if (leave) {
-            // leaving project
-            this.setState({
-                loadingLeave: true
-            })
-            url = ["/projects", "leave", projID].join('/')
-        } else {
-            // joining project
-            this.setState({
-                loadingJoin: true
-            })
-            url = ["/projects", "join", projID].join('/')
+    joinProject = async () => {
+        if (this.state.selectProject == '--Select a Project--') {
+            alert("Must select a Project to join")
+            return
         }
+
+        this.setState({
+            loadingProject: true
+        })
+
+        let projid = JSON.stringify(this.state.mainProjectID).replaceAll('"', '')
+        const url = ['/projects', 'join', projid].join('/')
+        console.log(url)
         try {
-            console.log(url)
             const response = await fetch(url, {
                 method: 'GET'
             })
             if (!response.ok) {
                 throw new Error(`Error! status: ${response.status}`)
             }
-    
+
             const result = await response.json()
-    
+
             console.log('result is: ', JSON.stringify(result))
-    
-            // TODO: setState with API info in project
-            this.setState({
-                inProj: !leave
-            })
-            alert(result.message)
+
+            // TODO: setState with project info, set mainLoaded, set mainProjectID
         } catch (err) {
             console.log(err.message)
         } finally {
             this.setState({
-                loadingLeave: false,
-                loadingJoin: false
+                loadingProject: false
             })
         }
-
     }
 
-    renderJoin() {
-        return (
-            <Button className="join-button" onClick={() => this.handleJoin()} variant="outlined" color="inherit">
-                {this.state.inProj ? "Leave" : "Join"}
-            </Button>
-        )
+    loadProjectList = async () => {
+        this.setState({
+            loadingProjectsList: true
+        })
+
+        try {
+            const response = await fetch('/projects/list', {
+                method: 'GET'
+            })
+            if (!response.ok) {
+                throw new Error(`Error! status: ${response.status}`)
+            }
+
+            const result = await response.json()
+
+            console.log('result is: ', JSON.stringify(result))
+
+            // TODO: setState with list info
+            
+        } catch (err) {
+            console.log(err.message)
+        } finally {
+            this.setState({
+                loadingProjectsList: false
+            })
+        }
     }
 
     render() {
-        let users = this.props.projectUsers
-        let userOut = users[0]
-        for (let k = 1; k < users.length; k++) {
-            userOut += ", " + users[k]
+        if (!this.state.projectsLoaded && !this.state.loadingProjectsList) {
+            this.loadProjectList()
         }
 
-        return (
-            <>
-                <Grid container spacing={1} border={1} padding={2} margin={2}>
-                    <Grid item xs={2}>
-                        <h2 className="project-name">{this.props.projectName}</h2>
-                    </Grid>
-                    <Grid item xs={2}>
-                        <div className="users">{userOut}</div>
-                    </Grid>
-                    <Grid item xs={7}>
-                        <div className="hwsets">
-                            {this.renderHWSet(0)}
-                            {this.renderHWSet(1)}
-                        </div>
-                    </Grid>
-                    <Grid item xs={1}>
-                        {this.renderJoin()}
-                    </Grid>
+        return(
+            <Box margin={6} maxWidth >
+                <h1>Projects</h1><br/>
+                <Grid container justifyContent="flex-start" direction='row' >
+                    <Grid item xs={2} ><Select label='Project' value={this.state.selectProject} onChange={this.handleSelectChange} size="small" >
+                        <MenuItem value='--Select a Project--' >--Select a Project--</MenuItem>
+                        {this.state.adminList(({ projid }) => (
+                            <MenuItem value={projid} >{projid}</MenuItem>
+                        ))}
+                        {this.state.memberList(({ projid }) => (
+                            <MenuItem value={projid} >{projid}</MenuItem>
+                        ))}
+                    </Select></Grid>
+                    <Grid item xs={6} ><Button variant='outlined' onSubmit={this.joinProject} >Join Project</Button></Grid>
+                    <Grid item xs={4} ><Button href='/projects/newProject' variant='outlined' >Create New Project</Button></Grid>
                 </Grid>
-            </>
+
+                <Project
+                    proj={this.state.mainProject}
+                    loaded={this.state.mainLoaded}
+                    onCheckIn={(i, qty) => this.handleCheckIn(i, qty)}
+                    onCheckOut={(i, qty) => this.handleCheckOut(i, qty)}
+                />
+            </Box>
         )
     }
 }
 
-class HWSet extends  React.Component {
-    constructor(props) {
+class Project extends React.Component {
+    // constructor(props) {
+    //     super(props)
+
+    //     this.state = {
+
+    //     }
+    // }
+
+    renderHWset(i) {
+        return (
+            <HWSet
+                setNum={i+1}
+                onCheckIn={(qty) => this.props.onCheckIn(i, qty)}
+                onCheckOut={(qty) => this.props.onCheckOut(i, qty)}
+                hwset={this.props.HWsets[i]}
+            />
+        )
+    }
+
+    render() {
+        if (this.props.loaded) {
+            return (
+                <Box border={1} margin={6} >
+                    <h2>{this.props.proj.Name}</h2><br/>
+                    <p>{this.props.proj.Description}</p><br/>
+                    <Box margin={3} >
+                        <Grid container >
+                            {this.renderHWset(0)}
+                            {this.renderHWset(1)}
+                        </Grid>
+                    </Box>
+                </Box>
+            )
+        } else {
+            return
+        }
+    }
+}
+
+class HWSet extends React.Component {
+    constructor(props){
         super(props)
 
         this.state = {
@@ -255,46 +259,28 @@ class HWSet extends  React.Component {
         }
     }
 
-    renderCheckIn() {
-        return (
-            <Button className="checkin" onClick={() => this.props.onCheckIn(this.state.qty)} variant="outlined" color='inherit'>
-                Check In
-            </Button>
-        )
-    }
-
-    renderCheckOut() {
-        return (
-            <Button className="checkout" onClick={() => this.props.onCheckOut(this.state.qty)} variant="outlined" color="inherit">
-                Check Out
-            </Button>
-        )
-    }
-
     onChange = event => {
         this.setState({
-            qty: Number(event.target.value)
+            qty: event.target.value
         })
     }
 
     render() {
         return (
-            <>
-                <Grid container spacing={1} padding={1}>
-                    <Grid item xs={3}>
+            <Grid container spacing={1} >
+                 <Grid item xs={3}>
                         HWSet{this.props.setNum}: {this.props.hwset.available}/{this.props.hwset.capacity}
                     </Grid>
                     <Grid item xs={4}>
                         <TextField size="small" placeholder="Enter qty" onChange={this.onChange} type="number" />
                     </Grid>
                     <Grid item xs={2}>
-                        {this.renderCheckIn()}
+                        <Button onClick={() => this.props.onCheckIn(this.state.qty)} variant="outlined" >Check In</Button>
                     </Grid>
                     <Grid item xs={3}>
-                        {this.renderCheckOut()}
+                        <Button onClick={() => this.props.onCheckOut(this.state.qty)} variant="outlined" >Check Out</Button>
                     </Grid>
-                </Grid>
-            </>
+            </Grid>
         )
     }
 }
