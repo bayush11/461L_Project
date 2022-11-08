@@ -68,6 +68,12 @@ class MongoVars:
         self.__projectCollection.insert_one(projDoc)
         return True
 
+        def getUserProjects(self, userid):
+            usr = self.__userCollection.find_one({'_id': userid})
+
+            return {'AdminProjs': usr['AdminProjs'],
+                    'UserProjs': usr['UserProjs']}
+
 
 
 # client.close()
