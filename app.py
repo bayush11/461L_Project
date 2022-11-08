@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory, redirect, request
+from flask import Flask, redirect, request, session
 import MongoDatabase
 
 app = Flask(__name__, static_url_path='', static_folder='ui/build/')
@@ -9,23 +9,34 @@ database = MongoDatabase.MongoVars()
 
 @app.route('/projects')
 def projects():
-    return app.send_static_file('index.html')
+    if 'userid' in session:
+        return app.send_static_file('index.html')
+    else:
+        return redirect('/login')
 
 @app.route('/newUser')
 def newUser():
     return app.send_static_file('index.html')
 
+@app.route('/logout')
+def logout():
+    session.pop('userid', None)
+    return redirect('/')
+
 @app.route('/')
 def home():
-    return redirect('/login')
+    if 'userid' in session:
+        return redirect('/projects')
+    else:
+        return redirect('/login')
 
 @app.route('/newUser/create', methods = ['POST'])
 def createUser():
     # TODO: integrate with mongodb functionality
     if request.method == 'POST':
         if database.addUser(str(request.form['nm']), str(request.form['userid']), str(request.form['password'])):
-            redirect('/projects')
-            return
+            session['userid'] = request.form['nm']
+            return redirect('/projects')
         else:
             return {"message": "UserID already taken"}
 
