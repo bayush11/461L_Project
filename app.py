@@ -1,10 +1,13 @@
 from flask import Flask, redirect, request, session
+from flask_session import Session
 import MongoDatabase
+import json
 
 app = Flask(__name__, static_url_path='', static_folder='ui/build/')
 database = MongoDatabase.MongoVars()
-
-# TODO: after adding login methods add login verification to each page
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"   # helped solve internal server error
+Session(app)
 
 
 @app.route('/projects')
@@ -30,9 +33,9 @@ def login():
 @app.route('/login/start', methods = ['POST'])
 def loginStart():
     if request.method == 'POST':
-        if database.validUser(request.form['nm'], request.form['password']):
-            session['userid'] = request.form['nm']
-            return {"valid": True}
+        if database.validUser(request.form['userid'], request.form['password']):
+            session['userid'] = request.form['userid']
+            return {"valid": True, "message": ""}
         else:
             return {"valid": False, "message": "Incorrect userID/password"}
 
@@ -64,7 +67,10 @@ def createProject():
 
 @app.route('/projects/list')
 def projectList():
-    return database.getUserProjects(session['userid'])
+    # return database.getUserProjects(session['userid'])
+    result = json.dumps(database.getUserProjects('vjliew'))
+    # print(result)
+    return json.dumps({"AdminProjs": ["100", "200"], "UserProjs": ["75"]})
 
 @app.route('/projects/newProject')
 def newProject():

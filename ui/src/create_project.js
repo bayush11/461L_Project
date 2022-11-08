@@ -1,6 +1,7 @@
 import './App.css';
 import React from 'react';
 import { Box, TextField, Grid, Button, Link } from "@mui/material"
+import { Navigate } from 'react-router-dom';
 
 class NewProject extends React.Component {
   constructor(props) {
@@ -12,7 +13,8 @@ class NewProject extends React.Component {
       nameInvalid: false,
       nameHelper: "",
       memberInvalid: false,
-      memberHelper: 'UserIDs (excluding your own) seperated by spaces'
+      memberHelper: 'UserIDs (excluding your own) seperated by spaces',
+      valid: false
     }
   }
 
@@ -58,7 +60,13 @@ class NewProject extends React.Component {
 
       console.log('result is: ', JSON.stringify(result))
 
-      alert(result.message)
+      if (result.valid) {
+        this.setState({
+          valid: true
+        })
+      } else {
+        alert(result.message)
+      }
     } catch (err) {
       console.log(err.message)
     }
@@ -93,10 +101,17 @@ class NewProject extends React.Component {
     })
   }
 
+  renderRedirect = () => {
+    if (this.state.valid) {
+      return (<Navigate to='/projects' />)
+    }
+  }
+
   // Elements: name, projectid, description, members, create, cancel
   render() {
     return (
       <Box className='container' >
+        {this.renderRedirect()}
         <Box border={1} width={350} padding={6} margin={6} className='container' boxShadow={8} component='form' onSubmit={this.handleSubmit} >
           <h1 className='item' >New Project</h1>
           <TextField

@@ -1,6 +1,6 @@
 import React from "react";
 import './App.css';
-import { Button, TextField, Grid, Box, Select, MenuItem } from "@mui/material";
+import { Button, TextField, Grid, Box, Select, MenuItem, FormControl } from "@mui/material";
 
 class Projects extends React.Component {
     constructor(props) {
@@ -163,10 +163,16 @@ class Projects extends React.Component {
             }
 
             const result = await response.json()
-
+            
+            console.log("loaded: ", this.state.projectsLoaded)
             console.log('result is: ', JSON.stringify(result))
 
             // TODO: setState with list info
+            this.setState({
+                projectsLoaded: true,
+                adminList: result.AdminProjs,
+                memberList: result.UserProjs
+            })
             
         } catch (err) {
             console.log(err.message)
@@ -186,15 +192,17 @@ class Projects extends React.Component {
             <Box margin={6} maxWidth >
                 <h1>Projects</h1><br/>
                 <Grid container justifyContent="flex-start" direction='row' >
-                    <Grid item xs={2} ><Select label='Project' value={this.state.selectProject} onChange={this.handleSelectChange} size="small" >
-                        <MenuItem value='--Select a Project--' >--Select a Project--</MenuItem>
-                        {this.state.adminList(({ projid }) => (
-                            <MenuItem value={projid} >{projid}</MenuItem>
-                        ))}
-                        {this.state.memberList(({ projid }) => (
-                            <MenuItem value={projid} >{projid}</MenuItem>
-                        ))}
-                    </Select></Grid>
+                    <Grid item xs={2} ><FormControl >
+                        <Select label='Project' value={this.state.selectProject} onChange={this.handleSelectChange} size="small" >
+                            <MenuItem value='--Select a Project--' >--Select a Project--</MenuItem>
+                            {this.state.adminList.map(({ projid }) => (
+                                <MenuItem value={projid} >{projid}</MenuItem>
+                            ))}
+                            {this.state.memberList.map(({ projid }) => (
+                                <MenuItem value={projid} >{projid}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl></Grid>
                     <Grid item xs={6} ><Button variant='outlined' onSubmit={this.joinProject} >Join Project</Button></Grid>
                     <Grid item xs={4} ><Button href='/projects/newProject' variant='outlined' >Create New Project</Button></Grid>
                 </Grid>

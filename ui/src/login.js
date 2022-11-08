@@ -1,6 +1,7 @@
 import './App.css';
 import React from "react";
 import { Box, Button, Grid, Link, TextField } from "@mui/material"
+import { Navigate } from 'react-router-dom';
 
 //  Using react elements
 class Login extends React.Component {
@@ -14,7 +15,8 @@ class Login extends React.Component {
       passText: "",
       diffText: "",
       idInvalid: false,
-      idHelper: ""
+      idHelper: "",
+      valid: false
     }
   }
 
@@ -48,7 +50,13 @@ class Login extends React.Component {
 
       console.log('result is: ', JSON.stringify(result))
 
-      alert(result.message)
+      if (result.valid) {
+        this.setState({
+          valid: true
+        })
+      } else {
+        alert(result.message)
+      }
     } catch (err) {
       console.log(err.message)
     }
@@ -88,10 +96,17 @@ class Login extends React.Component {
     })
   }
 
+  renderRedirect = () => {
+    if (this.state.valid) {
+      return (<Navigate to='/projects' />)
+    }
+  }
+
   // Elements needed: title, name, id, password, confirm password, submit(create), cancel
   render () {
     return (
       <Box className='container' >
+        {this.renderRedirect()}
         <Box border={1} width={350} padding={6} margin={6} className='container' boxShadow={8} component='form' onSubmit={this.handleSubmit} >
         <h1> Login </h1>
           <TextField
