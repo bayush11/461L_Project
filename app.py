@@ -19,7 +19,10 @@ def projects():
 
 @app.route('/newUser')
 def newUser():
-    return app.send_static_file('index.html')
+    if 'userid' in session:
+        return redirect('/projects')
+    else:
+        return app.send_static_file('index.html')
 
 @app.route('/logout')
 def logout():
@@ -28,7 +31,10 @@ def logout():
 
 @app.route('/login')
 def login():
-    return app.send_static_file('index.html')
+    if 'userid' in session:
+        return redirect('/projects')
+    else:
+        return app.send_static_file('index.html')
 
 @app.route('/login/start', methods = ['POST'])
 def loginStart():
@@ -58,7 +64,6 @@ def createUser():
 
 @app.route('/projects/newProject/create', methods = ['POST'])
 def createProject():
-    # TODO: integrate with mongodb functionality
     if request.method == 'POST':
         if database.createProject(request.form['projnm'], request.form['projid'], request.form['description'], session['userid'], request.form['members']):
             return {"valid": True}
@@ -68,13 +73,17 @@ def createProject():
 @app.route('/projects/list')
 def projectList():
     # return database.getUserProjects(session['userid'])
-    result = json.dumps(database.getUserProjects('vjliew'))
+    result = json.dumps(database.getUserProjects(session['userid']))
     # print(result)
-    return json.dumps({"AdminProjs": ["100", "200"], "UserProjs": ["400"]})
+    # return json.dumps({"AdminProjs": ["100", "200"], "UserProjs": ["400"]})
+    return result
 
 @app.route('/projects/newProject')
 def newProject():
-    return app.send_static_file('index.html')
+    if 'userid' in session:
+        return app.send_static_file('index.html')
+    else:
+        return redirect('/login')
 
 @app.route('/projects/checkIn/<projectid>/<int:setNum>/<int:qty>')
 def checkOut_hardware(projectid, setNum, qty):

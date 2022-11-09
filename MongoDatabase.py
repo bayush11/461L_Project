@@ -37,7 +37,7 @@ class MongoVars:
 
         memberList = members.split()
 
-        # make sure users in memberlist exist
+        # TODO: make sure users in memberlist exist
         for member in memberList:
             user = self.__userCollection.find_one({'_id': member})
             userProjs = user['UserProjs']
