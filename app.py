@@ -56,7 +56,7 @@ def home():
 def createUser():
     if request.method == 'POST':
         if database.addUser(str(request.form['nm']), str(request.form['userid']), str(request.form['password'])):
-            session['userid'] = request.form['nm']
+            session['userid'] = request.form['userid']
             return {"valid": True}
         else:
             return {"valid": False, "message": "UserID already taken"}
@@ -64,7 +64,7 @@ def createUser():
 @app.route('/projects/newProject/create', methods = ['POST'])
 def createProject():
     if request.method == 'POST':
-        memberList = request.form['members']
+        memberList = request.form['members'].split()
         for member in memberList:
             if not database.userExists(member):
                 message = "UserID " + member + " does not exist"
@@ -104,7 +104,7 @@ def joinProject(projectid):
     project = database.getProject(projectid)
     hw1 = database.getHWAvailable(1)
     hw2 = database.getHWAvailable(2)
-
+    
     return {
             'Name': project['Name'], 
             'Description': project['Description'],

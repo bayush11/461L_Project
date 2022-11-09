@@ -84,6 +84,7 @@ class Projects extends React.Component {
 
             // TODO: alert amount checked in
             // alert('', result.CheckedIn, ' Checked in')
+            alert('Checked in ' + String(result.CheckedIn) + ' units from HWSet' + String(i))
 
         } catch (err) {
             console.log(err.message)
@@ -142,6 +143,7 @@ class Projects extends React.Component {
 
             // TOOD: alert amount checked out
             // alert('', result.CheckedOut, ' Checked out')
+            alert('Checked out ' + String(result.CheckedOut) + ' units from HWSet' + String(i))
 
         } catch (err) {
             console.log(err.message)
@@ -183,6 +185,7 @@ class Projects extends React.Component {
             proj.Members = result.Members.join(', ')
             // TODO: HWOut and Available
             proj.HW1Out = result.HW1Out
+            proj.HW2Out = result.HW2Out
             // proj.HWsets[0].available = Number(result.HW1.Availability)
             // proj.HWsets[1].available = Number(result.HW2.Availability)
 
@@ -268,6 +271,8 @@ class Projects extends React.Component {
                         loaded={this.state.mainLoaded}
                         onCheckIn={(i, qty) => this.handleCheckIn(i, qty)}
                         onCheckOut={(i, qty) => this.handleCheckOut(i, qty)}
+                        HW1Available={this.state.HW1Available}
+                        HW2Available={this.state.HW2Available}
                     />
                 </Box>
             </>
@@ -291,14 +296,14 @@ class Project extends React.Component {
                     setNum={1}
                     onCheckIn={(qty) => this.props.onCheckIn(1, qty)}
                     onCheckOut={(qty) => this.props.onCheckOut(1, qty)}
-                    checkedOut={this.props.HW1Out}
+                    checkedOut={this.props.proj.HW1Out}
                     available={this.props.HW1Available}
                 />
                 <HWSet
                     setNum={2}
                     onCheckIn={(qty) => this.props.onCheckIn(2, qty)}
                     onCheckOut={(qty) => this.props.onCheckOut(2, qty)}
-                    checkedOut={this.props.HW2Out}
+                    checkedOut={this.props.proj.HW2Out}
                     available={this.props.HW2Available}
                 />
             </>
@@ -313,13 +318,17 @@ class Project extends React.Component {
                     <p>Project Description: {this.props.proj.Description}</p><br/>
                     <Box margin={3} >
                         <Grid container >
-                            {this.renderHWsets}
+                            {this.renderHWsets()}
                         </Grid>
                     </Box>
                 </Box>
             )
         } else {
-            return
+            return (
+                <>
+                    <h2 >Join project to view project information</h2>
+                </>
+            )
         }
     }
 }

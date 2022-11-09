@@ -69,21 +69,21 @@ class MongoVars:
         project = self.__projectCollection.find_one({'_id': projid})
         hwset = self.__hardwareCollection.find_one({'_id': str(setNum)})
 
-        HWset = hardwareSet.HWSet(hwset.TotalAvailability, hwset.TotalCapacity)
+        HWset = hardwareSet.HWSet(hwset['TotalAvailability'], hwset['TotalCapacity'])
 
-        availableBefore = hwset.TotalAvailability
+        availableBefore = hwset['TotalAvailability']
         
-        if setNum == 1 and project.HW1Out < qty:
-            qty = project.HW1Out
-        elif setNum == 2 and project.HW2Out < qty:
-            qty = project.HW2Out
+        if setNum == 1 and project['HW1Out'] < qty:
+            qty = project['HW1Out']
+        elif setNum == 2 and project['HW2Out'] < qty:
+            qty = project['HW2Out']
 
         HWset.check_in(qty)
         totalOut = availableBefore - HWset.get_availability()
         if setNum == 1:
-            totalOut += project.HW1Out
+            totalOut += project['HW1Out']
         else:
-            totalOut += project.HW2Out
+            totalOut += project['HW2Out']
 
         # update hwdoc, update projectdoc
         self.__hardwareCollection.update_one({'_id': str(setNum)}, {'$set': {'TotalAvailability': HWset.get_availability()}})
@@ -107,16 +107,16 @@ class MongoVars:
         project = self.__projectCollection.find_one({'_id': projid})
         hwset = self.__hardwareCollection.find_one({'_id': str(setNum)})
 
-        HWset = hardwareSet.HWSet(hwset.TotalAvailability, hwset.TotalCapacity)
+        HWset = hardwareSet.HWSet(hwset['TotalAvailability'], hwset['TotalCapacity'])
 
-        availableBefore = hwset.TotalAvailability
+        availableBefore = hwset['TotalAvailability']
         
         HWset.check_out(qty)
         totalOut = availableBefore - HWset.get_availability()
         if setNum == 1:
-            totalOut += project.HW1Out
+            totalOut += project['HW1Out']
         else:
-            totalOut += project.HW2Out
+            totalOut += project['HW2Out']
 
         # update hwdoc, update projectdoc
         self.__hardwareCollection.update_one({'_id': str(setNum)}, {'$set': {'TotalAvailability': HWset.get_availability()}})
@@ -127,14 +127,14 @@ class MongoVars:
 
         return {
             'Available': HWset.get_availability(),
-            'CheckedOut': availableBefore - HWset.get_availability,
+            'CheckedOut': availableBefore - HWset.get_availability(),
             'TotalOut': totalOut
         }
 
 
     def getUserProjects(self, userid):
         usr = self.__userCollection.find_one({'_id': userid})
-
+        
         return {'AdminProjs': usr['AdminProjs'],
                 'UserProjs': usr['UserProjs']}
 
@@ -153,7 +153,8 @@ class MongoVars:
 
     def getHWAvailable(self, setNum):
         hwset = self.__hardwareCollection.find_one({'_id': str(setNum)})
-        return hwset.TotalAvailability
+        return hwset['TotalAvailability']
+
 
 # client.close()
 
