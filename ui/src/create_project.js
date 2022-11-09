@@ -47,10 +47,6 @@ class NewProject extends React.Component {
       const response = await fetch('/projects/newProject/create', {
         method: 'POST',
         body: data
-        // nm: data.get('projnm'),
-        // projid: data.get('projid'),
-        // description: data.get('description'),
-        // members: data.get('members')
       })
       if (!response.ok) {
         throw new Error(`Error! status: ${response.status}`)
@@ -110,60 +106,63 @@ class NewProject extends React.Component {
   // Elements: name, projectid, description, members, create, cancel
   render() {
     return (
-      <Box className='container' >
-        {this.renderRedirect()}
-        <Box border={1} width={350} padding={6} margin={6} className='container' boxShadow={8} component='form' onSubmit={this.handleSubmit} >
-          <h1 className='item' >New Project</h1>
-          <TextField
-            className='item'
-            name='projnm'
-            size='small'
-            label='Project Name'
-            margin='normal'
-            required
-            fullWidth
-            onChange={this.handleNameChange}
-            error={this.state.nameInvalid}
-            helperText={this.state.nameHelper}
-          />
-          <TextField
-            className='item'
-            name='projid'
-            size='small'
-            label='ProjectID'
-            margin='normal'
-            required
-            fullWidth
-            onChange={this.handleIdChange}
-            error={this.state.idInvalid}
-            helperText={this.state.idHelper}
-          />
-          <TextField
-            className='item'
-            name='description'
-            size='small'
-            label='Project Description'
-            margin='normal'
-            fullWidth
-            multiline
-            minRows={2}
-          />
-          <TextField
-            className='item'
-            name='members'
-            size='small'
-            label='Project Members'
-            margin='normal'
-            fullWidth
-            multiline
-            onChange={this.handleMemberChange}
-            helperText={this.state.memberHelper}
-            error={this.state.memberInvalid}
-          />
-          <Grid container justifyContent='flex-end' ><Button type='submit' variant='outlined' >Create Project</Button></Grid><br/>
-          <Link href='/projects' >Cancel</Link>
+      <>
+        <Grid container justifyContent='flex-end' maxWidth ><Link href='/logout' >Logout</Link></Grid>
+        <Box className='container' >
+          {this.renderRedirect()}
+          <Box border={1} width={350} padding={6} margin={6} className='container' boxShadow={8} component='form' onSubmit={this.handleSubmit} >
+            <h1 className='item' >New Project</h1>
+            <TextField
+              className='item'
+              name='projnm'
+              size='small'
+              label='Project Name'
+              margin='normal'
+              required
+              fullWidth
+              onChange={this.handleNameChange}
+              error={this.state.nameInvalid}
+              helperText={this.state.nameHelper}
+            />
+            <TextField
+              className='item'
+              name='projid'
+              size='small'
+              label='ProjectID'
+              margin='normal'
+              required
+              fullWidth
+              onChange={this.handleIdChange}
+              error={this.state.idInvalid}
+              helperText={this.state.idHelper}
+            />
+            <TextField
+              className='item'
+              name='description'
+              size='small'
+              label='Project Description'
+              margin='normal'
+              fullWidth
+              multiline
+              minRows={2}
+            />
+            <TextField
+              className='item'
+              name='members'
+              size='small'
+              label='Project Members'
+              margin='normal'
+              fullWidth
+              multiline
+              onChange={this.handleMemberChange}
+              helperText={this.state.memberHelper}
+              error={this.state.memberInvalid}
+            />
+            <Grid container justifyContent='flex-end' ><Button type='submit' variant='outlined' >Create Project</Button></Grid><br/>
+            <Link href='/projects' >Cancel</Link>
+          </Box>
         </Box>
-      </Box>
+      </>
     )
   }
 }

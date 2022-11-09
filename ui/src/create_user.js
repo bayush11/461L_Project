@@ -19,6 +19,8 @@ class NewUser extends React.Component {
       nameHelper: "",
       idInvalid: false,
       idHelper: "",
+      showDiff: false,
+      showPass: false,
       valid: false
     }
   }

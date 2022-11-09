@@ -5,7 +5,7 @@ import NewUser from "./create_user";
 import NewProject from "./create_project";
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Layout from "./Layout";
-import Login from "./login" 
+import Login from "./login"
 
 function App() {
     return (
@@ -17,7 +17,7 @@ function App() {
                     <Route path="projects" element={<Projects />} />
                     <Route path="newUser" element={<NewUser />} />
                     <Route path="projects/newProject" element={<NewProject />} />
-                    {/* <Route path='*' element={Custom 404 page} */}
+                    {/* <Route path='*' element={<PageNotFound />} */}
                 </Route>
             </Routes>
         </BrowserRouter>

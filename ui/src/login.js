@@ -10,12 +10,11 @@ class Login extends React.Component {
 
     this.state = {
       passInvalid: false,
-      diffErr: "",
       passErr: "",
       passText: "",
-      diffText: "",
       idInvalid: false,
       idHelper: "",
+      showPass: false,
       valid: false
     }
   }
@@ -38,9 +37,6 @@ class Login extends React.Component {
       const response = await fetch('/login/start', {
         method: 'POST',
         body: data
-        // nm: data.get('nm'),
-        // userid: this.state.userText,
-        // password: this.state.passText
       })
       if (!response.ok) {
         throw new Error(`Error! status: ${response.status}`)
@@ -60,18 +56,10 @@ class Login extends React.Component {
     } catch (err) {
       console.log(err.message)
     }
-
-    // fetch stuff
-    // if good, go to projects
-    // if not, show err
   }
 
   isAlphanumeric(str) {
     return /^[a-z0-9]+$/i.test(str)
-  }
-
-  isAlphabetic(str) {
-    return /^[a-z ]+$/i.test(str)
   }
 
   // Password field updated
@@ -136,7 +124,7 @@ class Login extends React.Component {
           />
 
           <Grid justifyContent="flex-end" container ><Button type='submit' variant='outlined' >Continue </Button></Grid><br/>
-          <Link href='/newUser'  >Dont have an account? Sign up!</Link>
+          <Link href='/newUser' >Dont have an account? Sign up!</Link>
         </Box>
       </Box>
   )}

@@ -1,6 +1,6 @@
 import React from "react";
 import './App.css';
-import { Button, TextField, Grid, Box, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import { Button, TextField, Grid, Box, Select, MenuItem, FormControl, InputLabel, Link } from "@mui/material";
 
 class Projects extends React.Component {
     constructor(props) {
@@ -15,16 +15,11 @@ class Projects extends React.Component {
                 Name: '',
                 Description: '',
                 Members: '',
-                HWsets: [
-                    {
-                        capacity: 500,
-                        available: 0
-                    }, {
-                        capacity: 500,
-                        available: 0
-                    }
-                ]
+                HW1Out: 0,
+                HW2Out: 0
             },
+            HW1Available: 0,
+            HW2Available: 0,
             selectProject: '--Select a Project--',
             loadingProject: false,
             loadingProjectsList: false,
@@ -59,8 +54,7 @@ class Projects extends React.Component {
                 method: 'GET'
             })
             if (!response.ok) {
-                err = new Error(`Error! status: ${response.status}`)
-                throw err
+                throw new Error(`Error! status: ${response.status}`)
             }
 
             const result = await response.json()
@@ -69,10 +63,24 @@ class Projects extends React.Component {
 
             // Available, CheckedIn
             let project = this.state.mainProject
-            project.HWsets[i].available = result.Available
+            if (i == 1) {
+                project.HW1Out = result.TotalOut
+            } else {
+                project.HW2Out = result.TotalOut
+            }
             this.setState({
                 mainProject: project
             })
+
+            if (i == 1) {
+                this.setState({
+                    HW1Available: result.Available
+                })
+            } else {
+                this.setState({
+                    HW2Available: result.Available
+                })
+            }
 
             // TODO: alert amount checked in
             // alert('', result.CheckedIn, ' Checked in')
@@ -105,8 +113,7 @@ class Projects extends React.Component {
                 method: 'GET'
             })
             if (!response.ok) {
-                err = new Error(`Error! status: ${response.status}`)
-                throw err
+                throw new Error(`Error! status: ${response.status}`)
             }
 
             const result = await response.json()
@@ -114,10 +121,24 @@ class Projects extends React.Component {
             console.log('result is: ', JSON.stringify(result))
 
             let project = this.state.mainProject
-            project.HWsets[i].available = result.Available
+            if (i == 1) {
+                project.HW1Out = result.TotalOut
+            } else {
+                project.HW2Out = result.TotalOut
+            }
             this.setState({
                 mainProject: project
             })
+
+            if (i == 1) {
+                this.setState({
+                    HW1Available: result.Available
+                })
+            } else {
+                this.setState({
+                    HW2Available: result.Available
+                })
+            }
 
             // TOOD: alert amount checked out
             // alert('', result.CheckedOut, ' Checked out')
@@ -160,13 +181,17 @@ class Projects extends React.Component {
             proj.Name = result.Name
             proj.Description = result.Description
             proj.Members = result.Members.join(', ')
-            proj.HWsets[0].available = Number(result.HW1.Availability)
-            proj.HWsets[1].available = Number(result.HW2.Availability)
+            // TODO: HWOut and Available
+            proj.HW1Out = result.HW1Out
+            // proj.HWsets[0].available = Number(result.HW1.Availability)
+            // proj.HWsets[1].available = Number(result.HW2.Availability)
 
             this.setState({
                 mainProject: proj,
                 mainLoaded: true,
-                mainProjectID: this.state.selectProject
+                mainProjectID: this.state.selectProject,
+                HW1Available: result.HW1Available,
+                HW2Available: result.HW2Available
             })
         } catch (err) {
             console.log(err.message)
@@ -196,7 +221,6 @@ class Projects extends React.Component {
             console.log(result.AdminProjs)
             console.log(result.UserProjs)
 
-            // TODO: setState with list info
             this.setState({
                 projectsLoaded: true,
                 adminList: result.AdminProjs,
@@ -218,32 +242,35 @@ class Projects extends React.Component {
         }
         
         return(
-            <Box margin={6} maxWidth >
-                <h1>Projects</h1><br/>
-                <Grid container justifyContent="flex-start" direction='row' >
-                    <Grid item xs={8} >
-                        <FormControl >
-                            <InputLabel id="projectsLabel" >ProjectID</InputLabel>
-                            <Select label='ProjectID' labelId="projectsLabel" value={this.state.selectProject} onChange={this.handleSelectChange} size="small" >
-                                <MenuItem value='--Select a Project--' >--Select a Project--</MenuItem>
-                                
-                                {this.state.adminList.map(projid => <MenuItem value={projid} >{projid}</MenuItem>)}
-                                {this.state.memberList.map(projid => <MenuItem value={projid} >{projid}</MenuItem>)}
-                            </Select>
-                        </FormControl>
-                        <> </><Button variant='outlined' onClick={this.joinProject} >Join Project</Button>
+            <>
+                <Grid container justifyContent='flex-end' maxWidth ><Link href='/logout' >Logout</Link></Grid>
+                <Box margin={6} maxWidth >
+                    <h1>Projects</h1><br/>
+                    <Grid container justifyContent="flex-start" direction='row' >
+                        <Grid item xs={8} >
+                            <FormControl >
+                                <InputLabel id="projectsLabel" >ProjectID</InputLabel>
+                                <Select label='ProjectID' labelId="projectsLabel" value={this.state.selectProject} onChange={this.handleSelectChange} size="small" >
+                                    <MenuItem value='--Select a Project--' >--Select a Project--</MenuItem>
+                                    
+                                    {this.state.adminList.map(projid => <MenuItem value={projid} >{projid}</MenuItem>)}
+                                    {this.state.memberList.map(projid => <MenuItem value={projid} >{projid}</MenuItem>)}
+                                </Select>
+                            </FormControl>
+                            <> </><Button variant='outlined' onClick={this.joinProject} >Join Project</Button>
+                        </Grid>
+                        {/* <Grid item xs={6} ><Button variant='outlined' onSubmit={this.joinProject} >Join Project</Button></Grid> */}
+                        <Grid item xs={4} ><Button href='/projects/newProject' variant='outlined' >Create New Project</Button></Grid>
                     </Grid>
-                    {/* <Grid item xs={6} ><Button variant='outlined' onSubmit={this.joinProject} >Join Project</Button></Grid> */}
-                    <Grid item xs={4} ><Button href='/projects/newProject' variant='outlined' >Create New Project</Button></Grid>
-                </Grid>
 
-                <Project
-                    proj={this.state.mainProject}
-                    loaded={this.state.mainLoaded}
-                    onCheckIn={(i, qty) => this.handleCheckIn(i, qty)}
-                    onCheckOut={(i, qty) => this.handleCheckOut(i, qty)}
-                />
-            </Box>
+                    <Project
+                        proj={this.state.mainProject}
+                        loaded={this.state.mainLoaded}
+                        onCheckIn={(i, qty) => this.handleCheckIn(i, qty)}
+                        onCheckOut={(i, qty) => this.handleCheckOut(i, qty)}
+                    />
+                </Box>
+            </>
         )
     }
 }
@@ -257,14 +284,24 @@ class Project extends React.Component {
     //     }
     // }
 
-    renderHWset(i) {
+    renderHWsets() {
         return (
-            <HWSet
-                setNum={i+1}
-                onCheckIn={(qty) => this.props.onCheckIn(i, qty)}
-                onCheckOut={(qty) => this.props.onCheckOut(i, qty)}
-                hwset={this.props.proj.HWsets[i]}
-            />
+            <>
+                <HWSet
+                    setNum={1}
+                    onCheckIn={(qty) => this.props.onCheckIn(1, qty)}
+                    onCheckOut={(qty) => this.props.onCheckOut(1, qty)}
+                    checkedOut={this.props.HW1Out}
+                    available={this.props.HW1Available}
+                />
+                <HWSet
+                    setNum={2}
+                    onCheckIn={(qty) => this.props.onCheckIn(2, qty)}
+                    onCheckOut={(qty) => this.props.onCheckOut(2, qty)}
+                    checkedOut={this.props.HW2Out}
+                    available={this.props.HW2Available}
+                />
+            </>
         )
     }
 
@@ -276,8 +313,7 @@ class Project extends React.Component {
                     <p>Project Description: {this.props.proj.Description}</p><br/>
                     <Box margin={3} >
                         <Grid container >
-                            {this.renderHWset(0)}
-                            {this.renderHWset(1)}
+                            {this.renderHWsets}
                         </Grid>
                     </Box>
                 </Box>
@@ -307,7 +343,7 @@ class HWSet extends React.Component {
         return (
             <Grid container spacing={1} >
                  <Grid item xs={3}>
-                        HWSet{this.props.setNum}: {this.props.hwset.available}/{this.props.hwset.capacity}
+                        HWSet{this.props.setNum}: {this.props.checkedOut}/{this.props.available}
                     </Grid>
                     <Grid item xs={4}>
                         <TextField size="small" placeholder="Enter qty" onChange={this.onChange} type="number" />

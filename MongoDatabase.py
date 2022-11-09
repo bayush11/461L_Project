@@ -10,12 +10,11 @@ class MongoVars:
         self.__hardwareCollection = self.__database.get_collection("HWSets")
         self.__projectCollection = self.__database.get_collection("Projects")
 
-
+    def userExists(self, userid):
+        return self.__userCollection.find_one({'_id': userid}) is not None
 
     def addUser(self, name, userid, password):
-        # validation
-        idTaken = self.__userCollection.find_one({'_id': userid}) is not None
-        if idTaken:
+        if self.userExists(userid):
             return False
 
         userDoc = {
@@ -37,7 +36,6 @@ class MongoVars:
 
         memberList = members.split()
 
-        # TODO: make sure users in memberlist exist
         for member in memberList:
             user = self.__userCollection.find_one({'_id': member})
             userProjs = user['UserProjs']
@@ -55,14 +53,8 @@ class MongoVars:
             'Description': description,
             'Admin': admin,
             'Members': memberList,
-            'HW1': {
-                'Capacity': 500,
-                'Availability': 500
-            },
-            'HW2': {
-                'Capacity': 500,
-                'Availability': 500
-            }
+            'HW1Out': 0,
+            'HW2Out': 0
         }
 
         self.__projectCollection.insert_one(projDoc)
@@ -75,46 +67,36 @@ class MongoVars:
             return None
 
         project = self.__projectCollection.find_one({'_id': projid})
-        if setNum == 0:
-            HWset = hardwareSet.HWSet(int(project['HW1']['Availability']), 500)
-        else:
-            HWset = hardwareSet.HWSet(int(project['HW2']['Availability']), 500)
+        hwset = self.__hardwareCollection.find_one({'_id': str(setNum)})
+
+        HWset = hardwareSet.HWSet(hwset.TotalAvailability, hwset.TotalCapacity)
+
+        availableBefore = hwset.TotalAvailability
         
-        availableBefore = HWset.get_availability()
+        if setNum == 1 and project.HW1Out < qty:
+            qty = project.HW1Out
+        elif setNum == 2 and project.HW2Out < qty:
+            qty = project.HW2Out
+
         HWset.check_in(qty)
-
-        if setNum == 0:
-            self.__projectCollection.update_one({'_id': projid}, {'$set': {'HW1': {'Capacity': 500, 'Availability': HWset.get_availability()}}})
+        totalOut = availableBefore - HWset.get_availability()
+        if setNum == 1:
+            totalOut += project.HW1Out
         else:
-            self.__projectCollection.update_one({'_id': projid}, {'$set': {'HW2': {'Capacity': 500, 'Availability': HWset.get_availability()}}})
+            totalOut += project.HW2Out
 
-        return {'Available': HWset.get_availability(), 'CheckedIn': HWset.get_availability() - availableBefore}
-        # idTaken = self.__projectCollection.find_one({'_id': projid}) is not None
-        # if idTaken:
-        #     return False
+        # update hwdoc, update projectdoc
+        self.__hardwareCollection.update_one({'_id': str(setNum)}, {'$set': {'TotalAvailability': HWset.get_availability()}})
+        if setNum == 1:
+            self.__projectCollection.update_one({'_id': projid}, {'$set': {'HW1Out': totalOut}})
+        else:
+            self.__projectCollection.update_one({'_id': projid}, {'$set': {'HW2Out': totalOut}})
 
-        # project = self.__projectCollection.find_one({'_id': projid})
-        # HWset = hardwareSet()
-        # if setNum == 0:
-        #     HWset = hardwareSet(500, project['HW1']['Availability'])
-        # else:
-        #     HWset = hardwareSet(500, project['HW2']['Availability'])
-        
-        # HWset.check_in(qty)
-
-        # if setNum == 0:
-        #     self.__projectCollection.update_one({'_id': projid}, {'$set': {'HW1': {'Capacity': 500, 'Availability': HWset.get_availability()}}})
-        # else:
-        #     self.__projectCollection.update_one({'_id': projid}, {'$set': {'HW2': {'Capacity': 500, 'Availability': HWset.get_availability()}}})
-
-        # return True
-        # TODO: reflect amount checked in
-
-    def getUserProjects(self, userid):
-        usr = self.__userCollection.find_one({'_id': userid})
-
-        return {'AdminProjs': usr['AdminProjs'],
-                'UserProjs': usr['UserProjs']}
+        return {
+            'Available': HWset.get_availability(),
+            'CheckedIn': HWset.get_availability() - availableBefore,
+            'TotalOut': totalOut
+        }
 
 
     def checkOutHW(self, projid, setNum, qty):
@@ -123,24 +105,39 @@ class MongoVars:
             return None
 
         project = self.__projectCollection.find_one({'_id': projid})
-        if setNum == 0:
-            HWset = hardwareSet.HWSet(int(project['HW1']['Availability']), 500)
-        else:
-            HWset = hardwareSet.HWSet(int(project['HW2']['Availability']), 500)
+        hwset = self.__hardwareCollection.find_one({'_id': str(setNum)})
 
+        HWset = hardwareSet.HWSet(hwset.TotalAvailability, hwset.TotalCapacity)
+
+        availableBefore = hwset.TotalAvailability
         
-        
-        availableBefore = HWset.get_availability()
         HWset.check_out(qty)
-
-        if setNum == 0:
-            self.__projectCollection.update_one({'_id': projid}, {'$set': {'HW1': {'Capacity': 500, 'Availability': HWset.get_availability()}}})
+        totalOut = availableBefore - HWset.get_availability()
+        if setNum == 1:
+            totalOut += project.HW1Out
         else:
-            self.__projectCollection.update_one({'_id': projid}, {'$set': {'HW2': {'Capacity': 500, 'Availability': HWset.get_availability()}}})
+            totalOut += project.HW2Out
 
-        return {'Available': HWset.get_availability(), 'CheckedOut': availableBefore - HWset.get_availability()}
-        
-        # TODO: reflect amount checked out
+        # update hwdoc, update projectdoc
+        self.__hardwareCollection.update_one({'_id': str(setNum)}, {'$set': {'TotalAvailability': HWset.get_availability()}})
+        if setNum == 1:
+            self.__projectCollection.update_one({'_id': projid}, {'$set': {'HW1Out': totalOut}})
+        else:
+            self.__projectCollection.update_one({'_id': projid}, {'$set': {'HW2Out': totalOut}})
+
+        return {
+            'Available': HWset.get_availability(),
+            'CheckedOut': availableBefore - HWset.get_availability,
+            'TotalOut': totalOut
+        }
+
+
+    def getUserProjects(self, userid):
+        usr = self.__userCollection.find_one({'_id': userid})
+
+        return {'AdminProjs': usr['AdminProjs'],
+                'UserProjs': usr['UserProjs']}
+
 
     def getProject(self, projid):
         project = self.__projectCollection.find_one({'_id': projid})
@@ -153,6 +150,11 @@ class MongoVars:
 
         return Encryption.customEncrypt(password, 3, 1) == user['EncryptedPass']
 
+
+    def getHWAvailable(self, setNum):
+        hwset = self.__hardwareCollection.find_one({'_id': str(setNum)})
+        return hwset.TotalAvailability
+
 # client.close()
 
 # Project Hierarchy (Maybe)
@@ -161,4 +163,6 @@ class MongoVars:
 #       -Users (collection)
 #           - document for each user: contains encrypted pass, username, userID, list of admin projs, list of included projs for redundancy
 #       -Projects (collection)
-#           - doc for each proj: contains proj name, projID, list of hwsets in proj (HWset ID), list of users with access, admin user
+#           - doc for each proj: contains proj name, projID, list of users with access, admin user, amount checked out from HW1, HW2
+#       -HardwareSets (collection)
+#           - doc for each HWset: contains setnum as id, capacity, availability, array of amounts with users
