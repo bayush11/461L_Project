@@ -68,26 +68,19 @@ class MongoVars:
         self.__projectCollection.insert_one(projDoc)
         return True
 
-        # inputs user and gets list of Admin and User projects that the user is in
-        def getUserProjects(self, userid):
-            usr = self.__userCollection.find_one({'_id': userid})
-
-            return {'AdminProjs': usr['AdminProjs'],
-                    'UserProjs': usr['UserProjs']}
-
 
     def checkInHW(self, projid, setNum, qty):
-        idTaken = self.__projectCollection.find_one({'_id': projid}) is not None
-        if idTaken:
-            return False
+        idInvalid = self.__projectCollection.find_one({'_id': projid}) is None
+        if idInvalid:
+            return None
 
         project = self.__projectCollection.find_one({'_id': projid})
-        HWset = hardwareSet()
         if setNum == 0:
-            HWset = hardwareSet(500, project['HW1']['Availability'])
+            HWset = hardwareSet.HWSet(int(project['HW1']['Availability']), 500)
         else:
-            HWset = hardwareSet(500, project['HW2']['Availability'])
+            HWset = hardwareSet.HWSet(int(project['HW2']['Availability']), 500)
         
+        availableBefore = HWset.get_availability()
         HWset.check_in(qty)
 
         if setNum == 0:
@@ -95,7 +88,26 @@ class MongoVars:
         else:
             self.__projectCollection.update_one({'_id': projid}, {'$set': {'HW2': {'Capacity': 500, 'Availability': HWset.get_availability()}}})
 
-        return True
+        return {'Available': HWset.get_availability(), 'CheckedIn': HWset.get_availability() - availableBefore}
+        # idTaken = self.__projectCollection.find_one({'_id': projid}) is not None
+        # if idTaken:
+        #     return False
+
+        # project = self.__projectCollection.find_one({'_id': projid})
+        # HWset = hardwareSet()
+        # if setNum == 0:
+        #     HWset = hardwareSet(500, project['HW1']['Availability'])
+        # else:
+        #     HWset = hardwareSet(500, project['HW2']['Availability'])
+        
+        # HWset.check_in(qty)
+
+        # if setNum == 0:
+        #     self.__projectCollection.update_one({'_id': projid}, {'$set': {'HW1': {'Capacity': 500, 'Availability': HWset.get_availability()}}})
+        # else:
+        #     self.__projectCollection.update_one({'_id': projid}, {'$set': {'HW2': {'Capacity': 500, 'Availability': HWset.get_availability()}}})
+
+        # return True
         # TODO: reflect amount checked in
 
     def getUserProjects(self, userid):
@@ -106,17 +118,19 @@ class MongoVars:
 
 
     def checkOutHW(self, projid, setNum, qty):
-        idTaken = self.__projectCollection.find_one({'_id': projid}) is not None
-        if idTaken:
-            return False
+        idInvalid = self.__projectCollection.find_one({'_id': projid}) is None
+        if idInvalid:
+            return None
 
         project = self.__projectCollection.find_one({'_id': projid})
-        HWset = hardwareSet()
         if setNum == 0:
-            HWset = hardwareSet(500, project['HW1']['Availability'])
+            HWset = hardwareSet.HWSet(int(project['HW1']['Availability']), 500)
         else:
-            HWset = hardwareSet(500, project['HW2']['Availability'])
+            HWset = hardwareSet.HWSet(int(project['HW2']['Availability']), 500)
+
         
+        
+        availableBefore = HWset.get_availability()
         HWset.check_out(qty)
 
         if setNum == 0:
@@ -124,7 +138,8 @@ class MongoVars:
         else:
             self.__projectCollection.update_one({'_id': projid}, {'$set': {'HW2': {'Capacity': 500, 'Availability': HWset.get_availability()}}})
 
-        return True
+        return {'Available': HWset.get_availability(), 'CheckedOut': availableBefore - HWset.get_availability()}
+        
         # TODO: reflect amount checked out
 
     def getProject(self, projid):

@@ -70,26 +70,29 @@ def projectList():
     # return database.getUserProjects(session['userid'])
     result = json.dumps(database.getUserProjects('vjliew'))
     # print(result)
-    return json.dumps({"AdminProjs": ["100", "200"], "UserProjs": ["75"]})
+    return json.dumps({"AdminProjs": ["100", "200"], "UserProjs": ["400"]})
 
 @app.route('/projects/newProject')
 def newProject():
     return app.send_static_file('index.html')
 
-@app.route('/projects/checkIn/<projectid>/<int:qty>')
-def checkOut_hardware(projectid, qty):
-    message = str(qty) + " hardware units checked in from project: " + projectid
-    return {"message": message}
+@app.route('/projects/checkIn/<projectid>/<int:setNum>/<int:qty>')
+def checkOut_hardware(projectid, setNum, qty):
+     result = database.checkInHW(projectid, setNum, qty)
+     return json.dumps(result)
+    # message = str(qty) + " hardware units checked in from project: " + projectid
+    # return {"message": message}
 
 
-@app.route('/projects/checkOut/<projectid>/<int:qty>')
-def checkIn_hardware(projectid, qty):
-    message = str(qty) + " hardware units checked out from project: " + projectid
-    return {"message": message}
+@app.route('/projects/checkOut/<projectid>/<int:setNum>/<int:qty>')
+def checkIn_hardware(projectid, setNum, qty):
+    result = database.checkOutHW(projectid, setNum, qty)
+    return json.dumps(result)
 
 
 @app.route('/projects/join/<projectid>')
 def joinProject(projectid):
+    print("Trying to join project: ", projectid)
     project = database.getProject(projectid)
     return {
             'Name': project['Name'], 

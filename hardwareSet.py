@@ -36,4 +36,6 @@ class HWSet:
     # check_in: checks in amount
     def check_in(self, qty):
         self.__availability += qty
+        if (self.__availability > self.__Capacity):
+            self.__availability = self.__Capacity
 

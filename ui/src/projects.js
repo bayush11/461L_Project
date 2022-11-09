@@ -50,7 +50,7 @@ class Projects extends React.Component {
         })
 
         let projid = JSON.stringify(this.state.mainProjectID).replaceAll('"', '')
-        let amount = JSON.stringify(qty)
+        let amount = JSON.stringify(qty).replaceAll('"', '')
         let setNum = JSON.stringify(i)
         const url = ['/projects', 'checkIn', projid, setNum, amount].join('/')
         console.log(url)
@@ -66,7 +66,15 @@ class Projects extends React.Component {
 
             console.log('result is: ', JSON.stringify(result))
 
-            // TODO: setState of project availability, maybe alert
+            // Available, CheckedIn
+            let project = this.state.mainProject
+            project.HWsets[i].available = result.Available
+            this.setState({
+                mainProject: project
+            })
+
+            // TODO: alert amount checked in
+            // alert('', result.CheckedIn, ' Checked in')
 
         } catch (err) {
             console.log(err.message)
@@ -87,9 +95,9 @@ class Projects extends React.Component {
         })
 
         let projid = JSON.stringify(this.state.mainProjectID).replaceAll('"', '')
-        let amount = JSON.stringify(qty)
+        let amount = JSON.stringify(qty).replaceAll('"', '')
         let setNum = JSON.stringify(i)
-        const url = ['/projects', 'checkIn', projid, setNum, amount].join('/')
+        const url = ['/projects', 'checkOut', projid, setNum, amount].join('/')
         console.log(url)
         try {
             const response = await fetch(url, {
@@ -103,7 +111,14 @@ class Projects extends React.Component {
 
             console.log('result is: ', JSON.stringify(result))
 
-            // TODO: setState of project availability, maybe alert
+            let project = this.state.mainProject
+            project.HWsets[i].available = result.Available
+            this.setState({
+                mainProject: project
+            })
+
+            // TOOD: alert amount checked out
+            // alert('', result.CheckedOut, ' Checked out')
 
         } catch (err) {
             console.log(err.message)
@@ -124,7 +139,7 @@ class Projects extends React.Component {
             loadingProject: true
         })
 
-        let projid = JSON.stringify(this.state.mainProjectID).replaceAll('"', '')
+        let projid = JSON.stringify(this.state.selectProject).replaceAll('"', '')
         const url = ['/projects', 'join', projid].join('/')
         console.log(url)
         try {
@@ -139,7 +154,18 @@ class Projects extends React.Component {
 
             console.log('result is: ', JSON.stringify(result))
 
-            // TODO: setState with project info, set mainLoaded, set mainProjectID
+            const proj = this.state.mainProject
+            proj.Name = result.Name
+            proj.Description = result.Description
+            proj.Members = result.Members.join(', ')
+            proj.HWsets[0].available = Number(result.HW1.Availability)
+            proj.HWsets[1].available = Number(result.HW2.Availability)
+
+            this.setState({
+                mainProject: proj,
+                mainLoaded: true,
+                mainProjectID: this.state.selectProject
+            })
         } catch (err) {
             console.log(err.message)
         } finally {
@@ -174,10 +200,6 @@ class Projects extends React.Component {
                 adminList: result.AdminProjs,
                 memberList: result.UserProjs
             })
-            
-            console.log(this.state.adminList)
-            console.log(this.state.memberList)
-            console.log(this.state.projectsLoaded)
 
         } catch (err) {
             console.log(err.message)
@@ -192,24 +214,24 @@ class Projects extends React.Component {
         if (!this.state.projectsLoaded && !this.state.loadingProjectsList) {
             this.loadProjectList()
         }
-
+        
         return(
             <Box margin={6} maxWidth >
                 <h1>Projects</h1><br/>
                 <Grid container justifyContent="flex-start" direction='row' >
-                    <Grid item xs={2} ><FormControl >
-                        <InputLabel id="projectsLabel" >ProjectID</InputLabel>
-                        <Select label='ProjectID' labelId="projectsLabel" value={this.state.selectProject} onChange={this.handleSelectChange} size="small" >
-                            <MenuItem value='--Select a Project--' >--Select a Project--</MenuItem>
-                            {this.state.adminList.map(({ projid, index }) => (
-                                <MenuItem value={projid} id={index} >{projid}</MenuItem>
-                            ))}
-                            {this.state.memberList.map(({ projid, index }) => (
-                                <MenuItem value={projid} id={index} >{projid}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl></Grid>
-                    <Grid item xs={6} ><Button variant='outlined' onSubmit={this.joinProject} >Join Project</Button></Grid>
+                    <Grid item xs={8} >
+                        <FormControl >
+                            <InputLabel id="projectsLabel" >ProjectID</InputLabel>
+                            <Select label='ProjectID' labelId="projectsLabel" value={this.state.selectProject} onChange={this.handleSelectChange} size="small" >
+                                <MenuItem value='--Select a Project--' >--Select a Project--</MenuItem>
+                                
+                                {this.state.adminList.map(projid => <MenuItem value={projid} >{projid}</MenuItem>)}
+                                {this.state.memberList.map(projid => <MenuItem value={projid} >{projid}</MenuItem>)}
+                            </Select>
+                        </FormControl>
+                        <> </><Button variant='outlined' onClick={this.joinProject} >Join Project</Button>
+                    </Grid>
+                    {/* <Grid item xs={6} ><Button variant='outlined' onSubmit={this.joinProject} >Join Project</Button></Grid> */}
                     <Grid item xs={4} ><Button href='/projects/newProject' variant='outlined' >Create New Project</Button></Grid>
                 </Grid>
 
@@ -239,7 +261,7 @@ class Project extends React.Component {
                 setNum={i+1}
                 onCheckIn={(qty) => this.props.onCheckIn(i, qty)}
                 onCheckOut={(qty) => this.props.onCheckOut(i, qty)}
-                hwset={this.props.HWsets[i]}
+                hwset={this.props.proj.HWsets[i]}
             />
         )
     }
@@ -247,9 +269,9 @@ class Project extends React.Component {
     render() {
         if (this.props.loaded) {
             return (
-                <Box border={1} margin={6} >
-                    <h2>{this.props.proj.Name}</h2><br/>
-                    <p>{this.props.proj.Description}</p><br/>
+                <Box border={1} margin={6} padding={3} >
+                    <h2>{this.props.proj.Name}</h2>
+                    <p>Project Description: {this.props.proj.Description}</p><br/>
                     <Box margin={3} >
                         <Grid container >
                             {this.renderHWset(0)}
