@@ -1,5 +1,7 @@
-import hardware
+import HWSet
 import projects
+import MongoDatabase
+
 def login(username, password):
     pass
 def promptCreateUser():
@@ -47,33 +49,33 @@ def testCheckout():
     amt = 10
     project1 = "project1"
     project1ID = "pid1"
-    h1quan = hardware.h1.Quantity
-    if(hardware.h1.Quantity >= amt):
+    h1quan = HWSet.h1.Quantity
+    if(HWSet.h1.Quantity >= amt):
         assert checkoutHardware1(project1ID, amt) == True
     else:
         assert checkoutHardware1(project1ID, amt) == False
 
-    h2quan = hardware.h2.Quantity
-    if (hardware.h2.Quantity >= amt):
+    h2quan = HWSet.h2.Quantity
+    if (HWSet.h2.Quantity >= amt):
         assert checkoutHardware2(project1ID, amt) == True
     else:
         assert checkoutHardware2(project1ID, amt) == False
 
-    assert ((hardware.h1.Quantity < h1quan) & (hardware.h2.Quantity < h2quan)) == True
+    assert ((HWSet.h1.Quantity < h1quan) & (HWSet.h2.Quantity < h2quan)) == True
 
 def testCheckin():
     amt = 10
     project1ID = "pid1"
-    h1quan = hardware.h1.Quantity
+    h1quan = HWSet.h1.Quantity
     if (projects.h1.getQuantity(project1ID) >= amt):
         assert checkinHardware1(project1ID, amt) == True
     else:
         assert checkinHardware1(project1ID, amt) == False
 
-    h2quan = hardware.h2.Quantity
+    h2quan = HWSet.h2.Quantity
     if (projects.h2.getQuantity(project1ID) >= amt):
         assert checkinHardware2(project1ID, amt) == True
     else:
         assert checkinHardware2(project1ID, amt) == False
 
-    assert ((hardware.h1.Quantity > h1quan) & (hardware.h2.Quantity > h2quan)) == True
+    assert ((HWSet.h1.Quantity > h1quan) & (HWSet.h2.Quantity > h2quan)) == True
